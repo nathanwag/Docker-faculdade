@@ -1,0 +1,21 @@
+docker run -d -p 80:8080 --name litecart_app shurco/litecart 
+Measure-Command { docker run -d -p 80:8080 --name litecart_test shurco/litecart }
+docker stats --no-stream > resources.csv
+docker run --rm -v sysbenchdata:/data -w /data severalnines/sysbench sysbench fileio --file-total-size=1G --file-test-mode=rndrw prepare 
+docker run --rm -v sysbenchdata:/data -w /data severalnines/sysbench sysbench fileio --file-total-size=1G --file-test-mode=rndrw run
+for ($i=1; $i -le 5; $i++) { 
+
+>>   docker run -d --name litecart_$i -p (8080 + $i):80 shurco/litecart 
+
+>>   Start-Sleep -Seconds 5 
+
+>>   Write-Host "Executando benchmark com $i container(es)..." 
+
+>>   docker run --rm -v sysbenchdata:/data -w /data severalnines/sysbench ` 
+
+>>     sysbench fileio --file-total-size=1G --file-test-mode=rndrw --time=30 run 
+
+>> } 
+docker run --rm --add-host=host.docker.internal:host-gateway williamyeh/wrk -t10 -c100 -d30s http://host.docker.internal:80
+docker run --rm --add-host=host.docker.internal:host-gateway williamyeh/wrk -t10 -c30 -d30s http://host.docker.internal:80
+docker run --rm --add-host=host.docker.internal:host-gateway williamyeh/wrk -t10 -c70 -d30s http://host.docker.internal:80
